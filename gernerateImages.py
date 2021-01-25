@@ -87,28 +87,36 @@ from PIL import Image
 
 print("Coordinates: " + str(coords))
 i = 0
-for coord in coords:
-    viewMatrix = pb.computeViewMatrix(
-        cameraEyePosition=[coord[0], coord[1], coord[2]],
-        cameraTargetPosition=[0, 0, 1],
-        cameraUpVector=[0, 0, 1])
 
-    width, height, rgbImg, depthImg, segImg = pb.getCameraImage(
-        width=224, 
-        height=224,
-        viewMatrix=viewMatrix,
-        projectionMatrix=projectionMatrix)
-    
-    print(np.array(rgbImg))
-    rgb_array = np.array(rgbImg, dtype=np.uint8)
-    rgb_array = np.reshape(rgb_array, (height, width, 4))
-    rgb_array = rgb_array[:, :, :3]
-    
-    im = Image.fromarray(rgb_array)
-    im.save('rgbIMG/%04d.png' %i)
-    #rgbImg = rgbImg.save(str(i)+".jpg")
-    i+=1
-    #sleep(3)
+import csv
+
+with open('rgbCSV.csv', 'w', newline='') as f:
+    thewriter = csv.writer(f)
+
+    for coord in coords:
+        viewMatrix = pb.computeViewMatrix(
+            cameraEyePosition=[coord[0], coord[1], coord[2]],
+            cameraTargetPosition=[0, 0, 1],
+            cameraUpVector=[0, 0, 1])
+
+        width, height, rgbImg, depthImg, segImg = pb.getCameraImage(
+            width=224, 
+            height=224,
+            viewMatrix=viewMatrix,
+            projectionMatrix=projectionMatrix)
+        
+        print(np.array(rgbImg))
+        rgb_array = np.array(rgbImg, dtype=np.uint8)
+        rgb_array = np.reshape(rgb_array, (height, width, 4))
+        rgb_array = rgb_array[:, :, :3]
+        
+        im = Image.fromarray(rgb_array)
+        im.save('rgbIMG/%04d.png' %i)
+        name = str(i) + '.png' 
+        thewriter.writerow([name, 0, coord])
+        #rgbImg = rgbImg.save(str(i)+".jpg")
+        i+=1
+        #sleep(3)
 
 wait = input("waiting")
 #from time import sleep
