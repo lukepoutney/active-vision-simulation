@@ -105,10 +105,16 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
         i = 0
 
         for coord in coords:
+            if coord[0]*coord[1] == 0 :
+                upVector =[0,1,0]
+            else:
+                upVector=[0,0,1]
+            print(coord[0]*coord[1])
             viewMatrix = pb.computeViewMatrix(
                 cameraEyePosition=[coord[0], coord[1], coord[2]],
                 cameraTargetPosition=[0, 0, 1],
-                cameraUpVector=[0,0,1])
+                cameraUpVector=upVector)
+
 
             width, height, rgbImg, depthImg, segImg = pb.getCameraImage(
                 width=224, 
