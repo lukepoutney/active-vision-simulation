@@ -20,6 +20,21 @@ for t in img_types:
 os.chdir("../..")
 
 
+obj_coord = [0,0,1]
+def to_polar(cartesian_cam, cartesian_obj):
+    #Get the polar coordinates of camera in relation to object
+    x = cartesian_cam[0] - cartesian_obj[0]
+    y = cartesian_cam[1] - cartesian_obj[1]
+    z = cartesian_cam[2] - cartesian_obj[2]
+
+    r = math.sqrt(x**2+y**2+z**2)
+    theta = math.degrees(math.atan2(y,x))
+    phi = math.degrees( math.atan2( ( math.sqrt(x**2+y**2) ),z ) )
+    r = round(r, 2)
+    theta = round(theta, 2)
+    phi = round(phi, 2)
+    return [r,theta,phi]
+
 
 #shape = '026'
 #shape_no = '5'
@@ -49,7 +64,7 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
             baseMass=1.0,
             baseCollisionShapeIndex=collisionShapeId, 
             baseVisualShapeIndex=visualShapeId,
-            basePosition=[0, 0, 1],
+            basePosition=[0,0,1],
             baseOrientation=pb.getQuaternionFromEuler([0, 0, 0]))
 
         import os, glob, random
@@ -68,26 +83,32 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
 
         #To allow object time to Fall
         from time import sleep
-        sleep(2)
-
+        sleep(1)
+        obj_pos, _ = pb.getBasePositionAndOrientation(multiBodyId)
+        #print(len(obj_pos))
 
         #import random #already imported
         import math
 
 
         #Generate coords for a given radius and total
-        radius = 2
-        total = 500
+        #radius = 2
+        total = 50
         coords = []
         for i in range(0,total):
-            a = random.random() * 2 * math.pi
-            r = radius * random.random() #math.sqrt(random.random())
-            x = r * math.cos(a)
-            y = r * math.sin(a)
-            z = round(math.sqrt( radius**2 - x**2 - y**2)+1,2)
-            x = round(x,2)
-            y = round(y,2)
+            theta = round( 2 * math.pi * random.random(), 2)
+            phi = round( math.pi / 2 * random.random(), 2) #pi/2 as we are only looking for upper hemisphere, lower is obscured by table
+            r = round(random.uniform(0.50,2.00), 2)
+            
+            print(r, theta, phi)
+
+            x = r * math.sin(phi) * math.cos(theta)
+            y = r * math.sin(phi) * math.sin(theta)
+            z = r * math.cos(phi)  
+            x,y,z = x+obj_pos[0], y+obj_pos[1], z+obj_pos[2]
             coords.append([x,y,z])
+            #theta = round( math.degrees(theta), 2)
+            #phi = round (math.degrees(phi), 2)
 
         projectionMatrix = pb.computeProjectionMatrixFOV(
             fov=45.0,
@@ -101,7 +122,7 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
 
         from PIL import Image
 
-        print("Coordinates: " + str(coords))
+        #print("Coordinates: " + str(coords))
         i = 0
 
         for coord in coords:
@@ -109,10 +130,10 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
                 upVector =[0,1,0]
             else:
                 upVector=[0,0,1]
-            print(coord[0]*coord[1])
+            #print(coord[0]*coord[1])
             viewMatrix = pb.computeViewMatrix(
                 cameraEyePosition=[coord[0], coord[1], coord[2]],
-                cameraTargetPosition=[0, 0, 1],
+                cameraTargetPosition=obj_pos,
                 cameraUpVector=upVector)
 
 
@@ -130,7 +151,7 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
             im = Image.fromarray(rgb_array)
             im.save('imgs/'+current_time+'/rgbIMG/'+str(shapeID)+'_%04d.png' %i)
 
-            thewriter.writerow([str(shapeID)+'_%04d.png' %i, shapeID, coord])
+            thewriter.writerow([str(shapeID)+'_%04d.png' %i, shapeID, to_polar(coord, obj_pos)])
             #rgbImg = rgbImg.save(str(i)+".jpg")
             i+=1
             #sleep(3)
