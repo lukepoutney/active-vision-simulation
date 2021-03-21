@@ -27,16 +27,16 @@ os.makedirs("imgs", exist_ok = True)
 os.chdir("imgs")
 os.mkdir(current_time)
 os.chdir(current_time)
-img_types = ["rgbImg"] #, "depthImg", "segImg"
+img_types = ["rgbImg","segImg"] #, "depthImg", "segImg"
 for t in img_types:
     os.makedirs(t, exist_ok = True)
 os.chdir("../..")
 
-
+#shapes = ['000']
 shapes = ['000','003','006','008','014','026']
-r_range = [1.00,2,00]
-obj_num = 500
-img_size = 224
+r_range = [0.50,1.00]
+obj_num = 10
+img_size = 200
 
 with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
     thewriter = csv.writer(f)
@@ -51,12 +51,12 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
             shapeType=pb.GEOM_MESH,
             fileName='procedural_objects/'+shape+'/'+shape+'.obj',
             rgbaColor=None,
-            meshScale=[0.05, 0.05, 0.05])
+            meshScale=[0.025, 0.025, 0.025])
 
         collisionShapeId = pb.createCollisionShape(
             shapeType=pb.GEOM_MESH,
             fileName='procedural_objects/'+shape+'/'+shape+'_coll.obj',
-            meshScale=[0.05, 0.05, 0.05])
+            meshScale=[0.025, 0.025, 0.025])
 
         multiBodyId = pb.createMultiBody(
             baseMass=1.0,
@@ -77,7 +77,7 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
             fov=45.0,
             aspect=1.0,
             nearVal=0.1,
-            farVal=6.0)
+            farVal=10.0)
 
         #Generate coords for the given radius range and no of images per obj
         for i in range(0,obj_num):
@@ -125,6 +125,13 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
             seg_array = np.array(segImg)
             seg_array = seg_array.reshape(height, width)
             seg_imgs.append(seg_array)
+
+            seg_rgb_array = np.where(seg_array != 2, 0, rgb_array[:,:,0])
+            seg_rgb_array = np.where(seg_array != 2, 0, rgb_array[:,:,1])
+            seg_rgb_array = np.where(seg_array != 2, 0, rgb_array[:,:,2])
+
+            seg_im = Image.fromarray(seg_rgb_array)
+            seg_im.save('imgs/'+current_time+'/segIMG/'+str(shapeID)+'_%04d.png' %i)
 
             thewriter.writerow([str(shapeID)+'_%04d.png' %i, shapeID, [r,theta,phi]])
 
