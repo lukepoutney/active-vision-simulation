@@ -33,10 +33,12 @@ for t in img_types:
 os.chdir("../..")
 
 #shapes = ['000']
-shapes = ['000','003','006','008','014','026']
-r_range = [0.50,1.00]
-obj_num = 10
-img_size = 200
+#shapes = ['000', '003']
+shapes = ['000','003','006']#, '008','014','026']
+#shapes = ['000','006', '008', '053']#, '077']
+r_range = [0.50,0.50]
+obj_num = 200
+img_size = 128
 
 with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
     thewriter = csv.writer(f)
@@ -76,8 +78,8 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
         projectionMatrix = pb.computeProjectionMatrixFOV(
             fov=45.0,
             aspect=1.0,
-            nearVal=0.1,
-            farVal=10.0)
+            nearVal=0.005,
+            farVal=10)
 
         #Generate coords for the given radius range and no of images per obj
         for i in range(0,obj_num):
@@ -126,16 +128,24 @@ with open('imgs/'+current_time+'/rgbCSV.csv', 'w', newline='') as f:
             seg_array = seg_array.reshape(height, width)
             seg_imgs.append(seg_array)
 
-            seg_rgb_array = np.where(seg_array != 2, 0, rgb_array[:,:,0])
-            seg_rgb_array = np.where(seg_array != 2, 0, rgb_array[:,:,1])
-            seg_rgb_array = np.where(seg_array != 2, 0, rgb_array[:,:,2])
+            #seg_array = np.stack((seg_array,)*3, axis=-1)
+            #seg_R = np.where(seg_array[:,:,0] != 2, 0, rgb_array[:,:,0])
+            #seg_G = np.where(seg_array[:,:,1] != 2, 255, rgb_array[:,:,1])
+            #seg_B = np.where(seg_array[:,:,2] != 2, 0, rgb_array[:,:,2])
+
+            seg_R = np.where(seg_array != 2, 255, rgb_array[:,:,0])
+            seg_G = np.where(seg_array != 2, 255, rgb_array[:,:,1])
+            seg_B = np.where(seg_array != 2, 255, rgb_array[:,:,2])
+            seg_rgb_array = np.stack((seg_R, seg_G, seg_B), axis=-1)
 
             seg_im = Image.fromarray(seg_rgb_array)
             seg_im.save('imgs/'+current_time+'/segIMG/'+str(shapeID)+'_%04d.png' %i)
 
             thewriter.writerow([str(shapeID)+'_%04d.png' %i, shapeID, [r,theta,phi]])
 
+
         shapeID +=1
+
         pb.removeBody(multiBodyId)
 
     depth_imgs = np.array(depth_imgs)

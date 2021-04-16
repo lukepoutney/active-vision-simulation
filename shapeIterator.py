@@ -8,19 +8,19 @@ import os
 tableId = pb.loadURDF("table/table.urdf")
 
 shapes = ['000','003','006','008','014','026']
-for i in shapes:
+for i in shapes: #shapes
     #i = "%03d" % i
-    i = str(i)
+    #i = str(i)
     visualShapeId = pb.createVisualShape(
         shapeType=pb.GEOM_MESH,
         fileName='procedural_objects/'+i+'/'+i+'.obj',
         rgbaColor=None,
-        meshScale=[0.05, 0.05, 0.05])
+        meshScale=[0.025, 0.025, 0.025])
 
     collisionShapeId = pb.createCollisionShape(
         shapeType=pb.GEOM_MESH,
         fileName='procedural_objects/'+i+'/'+i+'_coll.obj',
-        meshScale=[0.05, 0.05, 0.05])
+        meshScale=[0.025, 0.025, 0.025])
 
     multiBodyId = pb.createMultiBody(
         baseMass=1.0,
